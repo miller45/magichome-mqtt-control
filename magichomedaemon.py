@@ -1,4 +1,6 @@
 import paho.mqtt.client as mqtt
+import json
+import ledcodes
 
 
 class MagicHomeDaemon:
@@ -6,6 +8,7 @@ class MagicHomeDaemon:
 
     def __init__(self):
         self.mqtturl = "192.168.0.18"
+        self.ledcodes = ledcodes.LedCodes()
 
         # The callback for when the client receives a CONNACK response from the server.
         def on_connect(client, userdata, flags, rc):
@@ -31,10 +34,37 @@ class MagicHomeDaemon:
     def ping(self):
         print("ping from magichomedaem")
 
-    def process_tele(self,topic,msg):
-        print(topic)
+    def process_tele(self, topic, msg):
+        if topic.endswith("/RESULT"):
+            ir = json.loads(msg)
+            if not (ir["IrReceived"] is None):
+                data = ir["IrReceived"]["Data"]
+                if data == self.ledcodes.LE_ON:
+                    self.client.publish("cmnd/sonoff/LS01/Dimmer", "100")
 
-    def process_stat(self,topic,msg):
+                if data == self.ledcodes.LE_OFF:
+                    self.client.publish("cmnd/sonoff/LS01/Dimmer", "0")
+
+                if data == self.ledcodes.LE_W:
+                    self.client.publish("cmnd/sonoff/LS01/Color", "12")
+
+                if data == self.ledcodes.LE_R1:
+                    self.client.publish("cmnd/sonoff/LS01/Color", "1")
+
+                if data == self.ledcodes.LE_G1:
+                    self.client.publish("cmnd/sonoff/LS01/Color", "2")
+
+                if data == self.ledcodes.LE_B1:
+                    self.client.publish("cmnd/sonoff/LS01/Color", "3")
+
+                if data == self.ledcodes.LE_BRIGHTER:
+                    self.client.publish("cmnd/sonoff/LS01/Dimmer", "+")
+
+                if data == self.ledcodes.LE_DIMMER:
+                    self.client.publish("cmnd/sonoff/LS01/Dimmer", "-")
+        print(msg)
+
+    def process_stat(self, topic, msg):
         print(topic)
 
     def loop_forever(self):
