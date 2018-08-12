@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import magichomedaemon
 
 daemon = magichomedaemon.MagicHomeDaemon()
